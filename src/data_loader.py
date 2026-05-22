@@ -37,11 +37,24 @@ def real_data_available():
 
 
 def load_channel(chan_id, n_values, anomaly_seqs, seed=0):
-    """Return (test_signal_2d, is_synthetic)."""
+    """Return (test_signal_2d, is_synthetic). For real NASA channels the array
+    is multivariate (T, F): feature 0 is the telemetry value, features 1..F-1
+    are one-hot command inputs (the JPL paper uses all of them as context)."""
     test_path = os.path.join(DATA, "test", f"{chan_id}.npy")
     if os.path.exists(test_path):
         return np.load(test_path), False
     return _synthesise(n_values, anomaly_seqs, seed), True
+
+
+def load_train_signal(chan_id):
+    """Return the dedicated NASA training signal (T, F) for a channel, or None
+    if train/<chan>.npy is absent (synthetic mode). Feature 0 is the telemetry
+    value being forecast; features 1..F-1 are command-input context the
+    forecaster conditions on."""
+    train_path = os.path.join(DATA, "train", f"{chan_id}.npy")
+    if os.path.exists(train_path):
+        return np.load(train_path)
+    return None
 
 
 def _synthesise(n, anomaly_seqs, seed):

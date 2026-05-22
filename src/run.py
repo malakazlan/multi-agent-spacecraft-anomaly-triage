@@ -17,7 +17,7 @@ import time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import numpy as np
-from data_loader import load_labels, load_channel, real_data_available
+from data_loader import load_labels, load_channel, load_train_signal, real_data_available
 from detector import prediction_errors
 from thresholding import find_anomalies
 from agents import triage
@@ -47,7 +47,9 @@ def main():
     for _, row in labels.iterrows():
         sig, is_syn = load_channel(row.chan_id, row.num_values,
                                    row.anomaly_sequences, seed=hash(row.chan_id) % 2**31)
-        err = prediction_errors(sig, backend=args.backend, epochs=args.epochs)
+        train_sig = None if is_syn else load_train_signal(row.chan_id)
+        err = prediction_errors(sig, backend=args.backend, epochs=args.epochs,
+                                train_signal=train_sig)
         pred = find_anomalies(err)
         tp, fp, fn = score_channel(pred, row.anomaly_sequences)
         per_channel.append((tp, fp, fn))
