@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+data/train/
+data/test/
+data/data.zip
+data/*.zip
+data/data/
+results/*.json
+.venv/
+.ipynb_checkpoints/
+/Email.md
