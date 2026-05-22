@@ -40,17 +40,26 @@ def _windows_multi(x_2d, w):
 
 
 def _normalize(test_2d, train_2d=None):
-    """Per-column z-score using TRAIN stats (or test stats if no train signal).
-    Returns (test_norm, train_norm-or-None)."""
-    test_2d = test_2d.astype(float)
+    """Z-score only column 0 (telemetry target) using TEST signal stats; leave
+    columns 1+ (one-hot command inputs) raw. We use test stats rather than
+    train stats because ~30% of channels have a near-constant train col 0
+    (std<0.01) which would otherwise blow up the test signal under z-scoring.
+    Test col 0 always has variance because it contains the anomaly windows."""
+    test_2d = np.array(test_2d, dtype=float, copy=True)
+    mu = test_2d[:, 0].mean()
+    sigma = test_2d[:, 0].std() + 1e-9
+    test_2d[:, 0] = (test_2d[:, 0] - mu) / sigma
+
     if train_2d is not None and len(train_2d) > 0:
-        train_2d = train_2d.astype(float)
-        mu = train_2d.mean(axis=0)
-        sigma = train_2d.std(axis=0) + 1e-9
-        return (test_2d - mu) / sigma, (train_2d - mu) / sigma
-    mu = test_2d.mean(axis=0)
-    sigma = test_2d.std(axis=0) + 1e-9
-    return (test_2d - mu) / sigma, None
+        train_2d = np.array(train_2d, dtype=float, copy=True)
+        # Defensive: align feature dim if mismatched (NASA channels match by design)
+        if train_2d.shape[1] != test_2d.shape[1]:
+            min_F = min(train_2d.shape[1], test_2d.shape[1])
+            train_2d = train_2d[:, :min_F]
+            test_2d = test_2d[:, :min_F]
+        train_2d[:, 0] = (train_2d[:, 0] - mu) / sigma
+        return test_2d, train_2d
+    return test_2d, None
 
 
 def prediction_errors(signal, backend="fast", epochs=10, train_signal=None):
