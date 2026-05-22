@@ -17,7 +17,7 @@ Sequence-level detection vs. the real labelled anomalies, all 82 channels:
 
 | Backend | Data | Precision | Recall | F1 |
 |---|---|---|---|---|
-| LSTM forecaster | real NASA SMAP/MSL | _run `download_data.sh` then `--backend lstm`_ | | |
+| LSTM forecaster | real NASA SMAP/MSL (all 82 channels) | 0.82 | 0.59 | **0.685** |
 | Ridge (fast/CI) | synthetic smoke test | 0.73 | 0.61 | 0.66 |
 
 JPL reference (Hundman et al. 2018, LSTM + nonparametric thresholding,
